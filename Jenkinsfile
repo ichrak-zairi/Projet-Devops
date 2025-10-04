@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        MVN_HOME = "C:/apache-maven-3.8.8" // ou le chemin où Maven est installé
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -14,19 +10,19 @@ pipeline {
 
         stage('Build') {
             steps {
-                bat "${env.MVN_HOME}/bin/mvn clean compile"
+                sh "mvn clean compile"
             }
         }
 
         stage('Test') {
             steps {
-                bat "${env.MVN_HOME}/bin/mvn test"
+                sh "mvn test"
             }
         }
 
         stage('Package') {
             steps {
-                bat "${env.MVN_HOME}/bin/mvn package"
+                sh "mvn package"
             }
         }
 
@@ -36,7 +32,7 @@ pipeline {
             }
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    bat "${env.MVN_HOME}/bin/mvn sonar:sonar"
+                    sh "mvn sonar:sonar"
                 }
             }
         }
