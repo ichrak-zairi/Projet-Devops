@@ -1,38 +1,53 @@
 pipeline {
     agent any
 
+    environment {
+        MVN_HOME = tool 'Maven'
+        JAVA_HOME = tool 'JDK17'
+        PATH = "${JAVA_HOME}/bin:${MVN_HOME}/bin:${env.PATH}"
+        SONAR_TOKEN = credentials('sonar-token')
+    }
+
     stages {
-        stage('Checkout') {
+
+        stage('Pull from Git') {
             steps {
-                git branch: 'main', url: 'https://github.com/ichrak-zairi/Projet-Devops.git'
+                echo '📥 Récupération du code source depuis GitHub...'
+                git branch: 'main', url: 'https://github.com/ichrak-zairi/Projet-Devops.git', credentialsId: 'git-credentials'
             }
         }
 
-        stage('Build') {
+        stage('Clean') {
             steps {
-                sh "mvn clean compile"
+                echo '🧹 Nettoyage du projet...'
+                sh 'mvn clean'
             }
         }
 
-        stage('Test') {
+        stage('Compile') {
             steps {
-                sh "mvn test"
+                echo '⚙️ Compilation du projet...'
+                sh 'mvn compile'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                echo '🔍 Analyse de la qualité du code avec SonarQube...'
+                withSonarQubeEnv('sonar-server') {
+                    sh "mvn sonar:sonar -Dsonar.projectKey=Projet-Devops -Dsonar.host.url=http://sonarqube:9000 -Dsonar.login=${SONAR_TOKEN}"
+                }
             }
         }
 
         stage('Package') {
             steps {
-                sh "mvn package"
+                echo '📦 Génération du fichier JAR...'
+                sh 'mvn package -DskipTests'
             }
-        }
-
-        stage('SonarQube Analysis') {
-            environment {
-                SONARQUBE = "SonarQube" // nom du serveur SonarQube configuré dans Jenkins
-            }
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh "mvn sonar:sonar"
+            post {
+                success {
+                    archiveArtifacts artifacts: 'target/*.jar', allowEmptyArchive: false
                 }
             }
         }
@@ -40,10 +55,10 @@ pipeline {
 
     post {
         success {
-            echo 'Build et analyse SonarQube réussis ✅'
+            echo '✅ Pipeline terminé avec succès !'
         }
         failure {
-            echo 'Le build a échoué ❌'
+            echo '❌ Échec du pipeline. Vérifie les logs pour plus de détails.'
         }
     }
 }
