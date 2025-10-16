@@ -59,11 +59,12 @@ pipeline {
             }
         }
 stage('Build Docker Image') {
-            steps {
-                echo '🐳 Construction de l’image Docker...'
-                sh "docker build -t ${DOCKER_IMAGE} -f Dockerfile ."
-            }
-        }
+    steps {
+        echo '🐳 Construction de l’image Docker...'
+        sh "docker build -t monuser/projet-devops:latest -f Dockerfile ."
+    }
+}
+
     }
 
     post {
