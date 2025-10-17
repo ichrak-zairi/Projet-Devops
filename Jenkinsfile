@@ -41,7 +41,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo ' Analyse de la qualité du code avec SonarQube...'
-                withSonarQubeEnv('SonarQubeServer') { // nom du serveur défini dans Jenkins
+                withSonarQubeEnv('sonar-token') 
                     sh "mvn sonar:sonar -Dsonar.projectKey=Projet-Devops -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN}"
                 }
             }
